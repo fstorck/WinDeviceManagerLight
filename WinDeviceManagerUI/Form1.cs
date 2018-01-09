@@ -34,6 +34,7 @@ namespace HW_Lib_Test
         {
             HardwareList = hwh.GetAll();
             listdevices.Items.Clear();
+            listdevices.ListViewItemSorter = new Sorter();
             foreach (var device in HardwareList)
             {
                 ListViewItem lvi = new ListViewItem(new string[] { device.name, device.friendlyName, device.hardwareId, device.status.ToString() });
@@ -152,6 +153,75 @@ namespace HW_Lib_Test
         private void listdevices_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void listdevices_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            Sorter s = (Sorter)listdevices.ListViewItemSorter;
+            s.Column = e.Column;
+
+            if (s.Order == System.Windows.Forms.SortOrder.Ascending)
+            {
+                s.Order = System.Windows.Forms.SortOrder.Descending;
+            }
+            else
+            {
+                s.Order = System.Windows.Forms.SortOrder.Ascending;
+            }
+
+           
+            // Call the sort method to manually sort.
+            listdevices.Sort();
+        }
+    }
+
+    class Sorter : System.Collections.IComparer
+    {
+        public int Column = 0;
+        public System.Windows.Forms.SortOrder Order = SortOrder.Ascending;
+        public int Compare(object x, object y) // IComparer Member
+        {
+            if (!(x is ListViewItem))
+                return (0);
+            if (!(y is ListViewItem))
+                return (0);
+
+            ListViewItem l1 = (ListViewItem)x;
+            ListViewItem l2 = (ListViewItem)y;
+
+            if (l1.ListView.Columns[Column].Tag == null)
+            {
+                l1.ListView.Columns[Column].Tag = "Text";
+            }
+
+            if (l1.ListView.Columns[Column].Tag.ToString() == "Numeric")
+            {
+                float fl1 = float.Parse(l1.SubItems[Column].Text);
+                float fl2 = float.Parse(l2.SubItems[Column].Text);
+
+                if (Order == SortOrder.Ascending)
+                {
+                    return fl1.CompareTo(fl2);
+                }
+                else
+                {
+                    return fl2.CompareTo(fl1);
+                }
+            }
+            else
+            {
+                string str1 = l1.SubItems[Column].Text;
+                string str2 = l2.SubItems[Column].Text;
+
+                if (Order == SortOrder.Ascending)
+                {
+                    return str1.CompareTo(str2);
+                }
+                else
+                {
+                    return str2.CompareTo(str1);
+                }
+            }
         }
     }
 }

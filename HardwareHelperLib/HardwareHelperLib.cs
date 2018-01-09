@@ -136,6 +136,8 @@ namespace HardwareHelperLib
         public const int DICS_FLAG_CONFIGSPECIFIC = (0x00000002);
         public const int DICS_ENABLE = (0x00000001);
         public const int DICS_DISABLE = (0x00000002);
+        public const int DICS_PROPCHANGE = ((0x00000003));    
+
 
         public const int DN_ROOT_ENUMERATED = 0x00000001;	/* Was enumerated by ROOT */
         public const int DN_DRIVER_LOADED = 0x00000002;	/* Has Register_Device_Driver */
@@ -249,6 +251,103 @@ namespace HardwareHelperLib
             }
             return HWList;
         }
+
+
+        bool _ResetDevice(IntPtr hDevInfo, IntPtr devInfoData)
+        {
+            int szOfPcp;
+            IntPtr ptrToPcp;
+            int szDevInfoData;
+            IntPtr ptrToDevInfoData;
+
+            Native.SP_PROPCHANGE_PARAMS pcp         = new Native.SP_PROPCHANGE_PARAMS();
+            pcp.ClassInstallHeader.cbSize           = Marshal.SizeOf(typeof(Native.SP_CLASSINSTALL_HEADER));
+            pcp.ClassInstallHeader.InstallFunction  = Native.DIF_PROPERTYCHANGE;
+            pcp.StateChange                         = Native.DICS_PROPCHANGE; // for reset
+            pcp.Scope                               = Native.DICS_FLAG_CONFIGSPECIFIC;
+            pcp.HwProfile                           = 0;
+            szOfPcp                                 = Marshal.SizeOf(pcp);
+            ptrToPcp                                = Marshal.AllocHGlobal(szOfPcp);
+            
+            Marshal.StructureToPtr(pcp, ptrToPcp, true);
+
+            szDevInfoData       = Marshal.SizeOf(devInfoData);
+            ptrToDevInfoData    = Marshal.AllocHGlobal(szDevInfoData);
+            Marshal.StructureToPtr(devInfoData, ptrToDevInfoData, true);
+
+            bool rslt1 = Native.SetupDiSetClassInstallParams(hDevInfo, ptrToDevInfoData, ptrToPcp, Marshal.SizeOf(typeof(Native.SP_PROPCHANGE_PARAMS)));
+            bool rstl2 = Native.SetupDiCallClassInstaller(Native.DIF_PROPERTYCHANGE, hDevInfo, ptrToDevInfoData);
+
+            if (rslt1 && rstl2)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool ResetDevice(DEVICE_INFO dev)
+        {
+            IntPtr devPtr = GetNativeDevInfo(dev);
+            if(devPtr != IntPtr.Zero)
+            {
+
+               
+                Native.SetupDiDestroyDeviceInfoList(devPtr);
+            }
+
+
+            return
+                false;
+        }
+
+
+        IntPtr GetNativeDevInfo(DEVICE_INFO deviceToChangeState)
+        {
+            Guid myGUID = System.Guid.Empty;
+            IntPtr hDevInfo = Native.SetupDiGetClassDevs(ref myGUID, 0, IntPtr.Zero, Native.DIGCF_ALLCLASSES | Native.DIGCF_PRESENT);
+            if (hDevInfo.ToInt64() == Native.INVALID_HANDLE_VALUE)
+                throw new Exception("Could retrieve handle for device");
+
+            Native.SP_DEVINFO_DATA DeviceInfoData;
+            DeviceInfoData = new Native.SP_DEVINFO_DATA();
+
+            //for 32-bit, IntPtr.Size = 4
+            //for 64-bit, IntPtr.Size = 8
+            if (IntPtr.Size == 4)
+                DeviceInfoData.cbSize = 28;
+            else if (IntPtr.Size == 8)
+                DeviceInfoData.cbSize = 32;
+
+            //is devices exist for class
+            DeviceInfoData.devInst = 0;
+            DeviceInfoData.classGuid = System.Guid.Empty;
+            DeviceInfoData.reserved = 0;
+            UInt32 i;
+            StringBuilder DeviceHardwareId = new StringBuilder("");
+            StringBuilder DeviceFriendlyName = new StringBuilder("");
+            DeviceHardwareId.Capacity = DeviceFriendlyName.Capacity = Native.MAX_DEV_LEN;
+            for (i = 0; Native.SetupDiEnumDeviceInfo(hDevInfo, i, DeviceInfoData); i++)
+            {
+                //Declare vars
+                Native.SetupDiGetDeviceRegistryProperty(hDevInfo, DeviceInfoData, Native.SPDRP_HARDWAREID, 0, DeviceHardwareId, Native.MAX_DEV_LEN, IntPtr.Zero);
+                Native.SetupDiGetDeviceRegistryProperty(hDevInfo, DeviceInfoData, Native.SPDRP_FRIENDLYNAME, 0, DeviceFriendlyName, Native.MAX_DEV_LEN, IntPtr.Zero);
+
+                Console.WriteLine(DeviceHardwareId + " -- " + DeviceFriendlyName);
+                if (DeviceHardwareId.ToString().ToLower().Contains(deviceToChangeState.hardwareId.ToLower()) && 
+                    DeviceFriendlyName.ToString().ToLower().Contains(deviceToChangeState.friendlyName.ToLower()))
+                {
+                    Console.WriteLine("Found: " + DeviceFriendlyName);
+                    return
+                        hDevInfo;
+                }
+            }
+
+            Native.SetupDiDestroyDeviceInfoList(hDevInfo);
+            
+            return
+                IntPtr.Zero;
+        }
+
         //Name:     SetDeviceState
         //Inputs:   string[],bool
         //Outputs:  bool
@@ -304,6 +403,9 @@ namespace HardwareHelperLib
 
             return true;
         }
+
+
+
         //Name:     HookHardwareNotifications
         //Inputs:   Handle to a window or service, 
         //          Boolean specifying true if the handle belongs to a window
