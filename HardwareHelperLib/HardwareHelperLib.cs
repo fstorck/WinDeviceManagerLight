@@ -253,7 +253,7 @@ namespace HardwareHelperLib
         }
 
 
-        bool _ResetDevice(IntPtr hDevInfo, IntPtr devInfoData)
+        bool _ResetDevice(IntPtr hDevInfo, Native.SP_DEVINFO_DATA devInfoData)
         {
             int szOfPcp;
             IntPtr ptrToPcp;
@@ -287,21 +287,24 @@ namespace HardwareHelperLib
 
         public bool ResetDevice(DEVICE_INFO dev)
         {
-            IntPtr devPtr = GetNativeDevInfo(dev);
-            if(devPtr != IntPtr.Zero)
+            Native.SP_DEVINFO_DATA devInfo;
+            IntPtr devPtr;
+
+            if(GetNativeDevInfo(dev, out devPtr, out devInfo))
             {
-
-               
+                bool bOk = _ResetDevice(devPtr, devInfo);
                 Native.SetupDiDestroyDeviceInfoList(devPtr);
-            }
 
+                return
+                    bOk;
+            }
 
             return
                 false;
         }
 
 
-        IntPtr GetNativeDevInfo(DEVICE_INFO deviceToChangeState)
+        bool GetNativeDevInfo(DEVICE_INFO deviceToChangeState, out IntPtr ptrDevInfo, out Native.SP_DEVINFO_DATA devData)
         {
             Guid myGUID = System.Guid.Empty;
             IntPtr hDevInfo = Native.SetupDiGetClassDevs(ref myGUID, 0, IntPtr.Zero, Native.DIGCF_ALLCLASSES | Native.DIGCF_PRESENT);
@@ -337,15 +340,21 @@ namespace HardwareHelperLib
                     DeviceFriendlyName.ToString().ToLower().Contains(deviceToChangeState.friendlyName.ToLower()))
                 {
                     Console.WriteLine("Found: " + DeviceFriendlyName);
+
+                    devData    = DeviceInfoData;
+                    ptrDevInfo = hDevInfo;
                     return
-                        hDevInfo;
+                        true;
                 }
             }
 
             Native.SetupDiDestroyDeviceInfoList(hDevInfo);
+
+            devData = null;
+            ptrDevInfo = IntPtr.Zero;
             
             return
-                IntPtr.Zero;
+                false;
         }
 
         //Name:     SetDeviceState

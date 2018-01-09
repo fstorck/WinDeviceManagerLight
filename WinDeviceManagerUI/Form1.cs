@@ -35,9 +35,11 @@ namespace HW_Lib_Test
             HardwareList = hwh.GetAll();
             listdevices.Items.Clear();
             listdevices.ListViewItemSorter = new Sorter();
+
             foreach (var device in HardwareList)
             {
                 ListViewItem lvi = new ListViewItem(new string[] { device.name, device.friendlyName, device.hardwareId, device.status.ToString() });
+                lvi.Tag = device;
                 listdevices.Items.Add(lvi);
             }
             label1.Text = HardwareList.Count.ToString() + " Devices Attached";
@@ -119,7 +121,8 @@ namespace HW_Lib_Test
             hwh.CutLooseHardwareNotifications(this.Handle);
             try
             {
-                hwh.SetDeviceState(HardwareList[listdevices.SelectedIndices[0]], true);
+                DEVICE_INFO di = (DEVICE_INFO)listdevices.SelectedItems[0].Tag;
+                hwh.SetDeviceState(di, true);
             }
             catch (Exception ex)
             {
@@ -141,7 +144,8 @@ namespace HW_Lib_Test
 
             try
             {
-                hwh.SetDeviceState(HardwareList[listdevices.SelectedIndices[0]], false);
+                DEVICE_INFO di = (DEVICE_INFO)listdevices.SelectedItems[0].Tag;
+                hwh.SetDeviceState(di, false);
             } catch(Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK);
@@ -150,9 +154,25 @@ namespace HW_Lib_Test
             hwh.HookHardwareNotifications(this.Handle, true);
         }
 
-        private void listdevices_SelectedIndexChanged(object sender, EventArgs e)
+        private void btn_reset_Click(object sender, EventArgs e)
         {
+            if (listdevices.SelectedIndices.Count == 0)
+                return;
 
+            hwh.CutLooseHardwareNotifications(this.Handle);
+
+            try
+            {
+                DEVICE_INFO di = (DEVICE_INFO)listdevices.SelectedItems[0].Tag;
+                bool bOk = hwh.ResetDevice(di);
+                // hwh.SetDeviceState(HardwareList[listdevices.SelectedIndices[0]], false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK);
+            }
+
+            hwh.HookHardwareNotifications(this.Handle, true);
         }
 
         private void listdevices_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -169,7 +189,6 @@ namespace HW_Lib_Test
                 s.Order = System.Windows.Forms.SortOrder.Ascending;
             }
 
-           
             // Call the sort method to manually sort.
             listdevices.Sort();
         }

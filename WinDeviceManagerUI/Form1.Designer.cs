@@ -38,12 +38,13 @@ namespace HW_Lib_Test
             this.HardwareId = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listdevices = new System.Windows.Forms.ListView();
             this.Status = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btn_reset = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(345, 818);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Location = new System.Drawing.Point(44, 818);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(119, 36);
             this.button1.TabIndex = 1;
@@ -53,8 +54,8 @@ namespace HW_Lib_Test
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(691, 818);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button2.Location = new System.Drawing.Point(171, 818);
+            this.button2.Margin = new System.Windows.Forms.Padding(4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(119, 36);
             this.button2.TabIndex = 2;
@@ -99,7 +100,7 @@ namespace HW_Lib_Test
             listViewItem1,
             listViewItem2});
             this.listdevices.Location = new System.Drawing.Point(45, 32);
-            this.listdevices.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.listdevices.Margin = new System.Windows.Forms.Padding(4);
             this.listdevices.MultiSelect = false;
             this.listdevices.Name = "listdevices";
             this.listdevices.Size = new System.Drawing.Size(1143, 756);
@@ -108,7 +109,7 @@ namespace HW_Lib_Test
             this.listdevices.UseCompatibleStateImageBehavior = false;
             this.listdevices.View = System.Windows.Forms.View.Details;
             this.listdevices.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listdevices_ColumnClick);
-            this.listdevices.SelectedIndexChanged += new System.EventHandler(this.listdevices_SelectedIndexChanged);
+
             // 
             // Status
             // 
@@ -116,16 +117,28 @@ namespace HW_Lib_Test
             this.Status.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.Status.Width = 93;
             // 
+            // btn_reset
+            // 
+            this.btn_reset.Location = new System.Drawing.Point(1069, 818);
+            this.btn_reset.Margin = new System.Windows.Forms.Padding(4);
+            this.btn_reset.Name = "btn_reset";
+            this.btn_reset.Size = new System.Drawing.Size(119, 36);
+            this.btn_reset.TabIndex = 6;
+            this.btn_reset.Text = "Reset";
+            this.btn_reset.UseVisualStyleBackColor = true;
+            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1229, 890);
+            this.Controls.Add(this.btn_reset);
             this.Controls.Add(this.listdevices);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Devices manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
@@ -144,6 +157,7 @@ namespace HW_Lib_Test
         private System.Windows.Forms.ColumnHeader HardwareId;
         private System.Windows.Forms.ListView listdevices;
         private System.Windows.Forms.ColumnHeader Status;
+        private System.Windows.Forms.Button btn_reset;
     }
 }
 
